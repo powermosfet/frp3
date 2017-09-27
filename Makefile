@@ -1,4 +1,4 @@
-all: elm haskell
+all: elm 
 
 elm: app.js 
 
