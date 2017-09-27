@@ -1,0 +1,17 @@
+{
+  "name": "fn-roast",
+  "description": "Another rewrite",
+  "logo": "",
+  "repository": "",
+  "buildpacks": [
+    {
+      "url": "https://github.com/srid/heroku-buildpack-elm.git"
+    },
+    {
+      "url": "https://github.com/mfine/heroku-buildpack-stack"
+    }
+  ],
+  "env": {
+    "ELM_COMPILE": "make clean elm"
+  }
+}
