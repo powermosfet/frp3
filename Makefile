@@ -1,4 +1,4 @@
-all: elm 
+all: haskell 
 
 elm: app.js 
 
@@ -7,6 +7,9 @@ app.js: frontend/*.elm
 
 haskell: app/*.hs
 	stack build
+
+install: haskell
+	stack install
 
 run: all
 	stack exec fn-roast
