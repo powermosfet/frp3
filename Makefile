@@ -5,7 +5,10 @@ elm: app.js
 app.js: frontend/*.elm
 	elm-make frontend/Main.elm --yes --output static/app.js
 
-haskell: app/*.hs
+setup:
+	stack setup
+
+haskell: app/*.hs setup
 	stack build
 
 install: haskell
