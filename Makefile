@@ -15,7 +15,7 @@ install: haskell
 	stack install
 
 run: all
-	stack exec fn-roast
+	stack exec fn-roast-exe
 
 clean:
 	-rm -r static/app.js elm-stuff/ .stack-work/

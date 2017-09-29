@@ -1,33 +1,32 @@
-{-# LANGUAGE DeriveGeneric     #-}
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE EmptyDataDecls             #-}
+{-# LANGUAGE FlexibleContexts           #-}
+{-# LANGUAGE FlexibleInstances          #-}
+{-# LANGUAGE GADTs                      #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE MultiParamTypeClasses      #-}
+{-# LANGUAGE QuasiQuotes                #-}
+{-# LANGUAGE TemplateHaskell            #-}
+{-# LANGUAGE TypeFamilies               #-}
+{-# LANGUAGE DeriveGeneric              #-}
+{-# LANGUAGE OverloadedStrings          #-}
 
 import           Web.Spock
 import           Web.Spock.Config
+import           Control.Monad.Logger    (runStdoutLoggingT)
+import           Database.Persist.Sqlite hiding (get)
+import           System.Environment
 
-import           Data.Aeson       hiding (json)
-import           Data.Monoid      ((<>))
-import           Data.Text        (Text, pack)
-import           GHC.Generics
-
-data Person = Person
-  { name :: Text
-  , age  :: Int
-  } deriving (Generic, Show)
-
-instance ToJSON Person
-
-instance FromJSON Person
-
-type Api = SpockM () () () ()
-
-type ApiAction a = SpockAction () () () a
+import Config          (fromEnvironment, Config(..), makeDbPool)
+import Config.DbConfig (DbConfig(SqliteConfig))
+import Api             (app)
+import Model           (migrateAll)
 
 main :: IO ()
 main = do
-  spockCfg <- defaultSpockCfg () PCNoDatabase ()
-  runSpock 8080 (spock spockCfg app)
-
-app :: Api
-app = do
-  get "cats" $ do
-    json [Person { name = "Fry", age = 25 }, Person { name = "Bender", age = 4 }]
+  env <- getEnvironment 
+  let config = fromEnvironment env (Config 8080 (SqliteConfig "api.db"))
+  print config
+  pool <- makeDbPool config 
+  runStdoutLoggingT $ runSqlPool (do runMigration migrateAll) pool
+  spockCfg <- defaultSpockCfg () (PCPool pool) ()
+  runSpock (configServerPort config) (spock spockCfg app)
