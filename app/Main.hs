@@ -23,8 +23,11 @@ import Model           (migrateAll)
 
 main :: IO ()
 main = do
+  let defaults = Config { configServerPort = 8888
+                        , configDbConfig = SqliteConfig "api.db"
+                        }
   env <- getEnvironment 
-  let config = fromEnvironment env (Config 8080 (SqliteConfig "api.db"))
+  let config = fromEnvironment env defaults
   print config
   pool <- makeDbPool config 
   runStdoutLoggingT $ runSqlPool (do runMigration migrateAll) pool

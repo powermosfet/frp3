@@ -5,17 +5,17 @@ elm: app.js
 app.js: frontend/*.elm
 	elm-make frontend/Main.elm --yes --output static/app.js
 
-setup:
-	stack setup
-
-haskell: app/*.hs setup
-	stack build
+haskell: app/*.hs
+	stack build --install-ghc
 
 install: haskell
 	stack install
 
 run: all
-	stack exec fn-roast-exe
+	stack exec frp
+
+develop: app/*.hs
+	stack build --pedantic --fast --file-watch
 
 clean:
 	-rm -r static/app.js elm-stuff/ .stack-work/

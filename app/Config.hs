@@ -5,7 +5,7 @@ import Data.Maybe
 import Database.Persist.Sqlite
 import Database.Persist.Postgresql
 import Data.String.Conversions
-import Control.Monad.Logger (runStderrLoggingT)
+import Control.Monad.Logger (runStdoutLoggingT)
 
 import Config.DbConfig
 import Config.DbUrl
@@ -40,7 +40,7 @@ makeDbPool cfg =
             SqliteConfig filename -> createSqlitePool (cs filename) 5
             PostgresqlConfig {} -> createPostgresqlPool (toConnectionString dbConfig) 5 
     in
-        runStderrLoggingT pool
+        runStdoutLoggingT pool
 
 
 toConnectionString :: DbConfig -> ConnectionString
