@@ -1,1 +1,1 @@
-web: fn-roast-exe
+web: frp
