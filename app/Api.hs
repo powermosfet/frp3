@@ -16,7 +16,7 @@
 module Api where
 
 import           Web.Spock
-import           Network.Wai.Middleware.Static        (staticPolicy, addBase)
+import           Network.Wai.Middleware.Static        (staticPolicy, addBase, only, (<|>))
 import           Data.Aeson                    hiding (json)
 import           Database.Persist              hiding (get)
 
@@ -27,7 +27,7 @@ import           Model         (Cat, EntityField(CatName))
 
 app :: Api
 app =
-  do middleware (staticPolicy (addBase "static"))
+  do middleware (staticPolicy ((only [("", "static/index.html")]) <|> (addBase "static")))
      do get "cats" $ do
           cats <- runSQL $ selectList [] [Asc CatName]
           json cats
