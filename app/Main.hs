@@ -23,13 +23,14 @@ import Model           (migrateAll)
 
 main :: IO ()
 main = do
-  let defaults = Config { configServerPort = 8888
+  let defaults = Config { configServerPort = 8080
                         , configDbConfig = SqliteConfig "api.db"
+                        , configSessionLifetime = 5 * 3600
                         }
   env <- getEnvironment 
   let config = fromEnvironment env defaults
   print config
   pool <- makeDbPool config 
   runStdoutLoggingT $ runSqlPool (do runMigration migrateAll) pool
-  spockCfg <- defaultSpockCfg () (PCPool pool) ()
+  spockCfg <- defaultSpockCfg Nothing (PCPool pool) config
   runSpock (configServerPort config) (spock spockCfg app)

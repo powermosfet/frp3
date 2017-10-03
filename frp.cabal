@@ -19,23 +19,31 @@ executable frp
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N
   other-modules:       Api
                      , Api.Types
+                     , Auth
                      , Config
                      , Config.DbConfig
                      , Config.DbUrl
-                     , DatabaseUtils
-                     , JsonUtils
+                     , Utils.Database
+                     , Utils.Json
                      , Model
+                     , Model.Session
+                     , Model.User
   build-depends:       base
                      , Spock
                      , aeson
                      , bytestring
+                     , http-types
+                     , hvect
                      , monad-logger
+                     , mtl
                      , parsec
                      , persistent
                      , persistent-postgresql
                      , persistent-sqlite
                      , persistent-template
                      , pwstore-fast
+                     , pwstore-fast
+                     , resourcet
                      , string-conversions
                      , text
                      , time

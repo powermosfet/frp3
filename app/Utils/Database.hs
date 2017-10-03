@@ -10,12 +10,14 @@
 {-# LANGUAGE DeriveGeneric              #-}
 {-# LANGUAGE OverloadedStrings          #-}
 
-module DatabaseUtils where
+module Utils.Database where
 
-import           Web.Spock
-import           Control.Monad.Logger    (LoggingT, runStdoutLoggingT)
-import           Database.Persist.Sqlite hiding (get)
+import Control.Monad.Logger
+import Database.Persist.Sql (SqlBackend, SqlPersistT, runSqlConn)
+import Control.Monad.Trans.Resource
+import Web.Spock
 
-runSQL :: (HasSpock m, SpockConn m ~ SqlBackend) => SqlPersistT (LoggingT IO) a -> m a
-runSQL action = runQuery $ \conn -> runStdoutLoggingT $ runSqlConn action conn
-
+runSQL :: (HasSpock m, SpockConn m ~ SqlBackend) => SqlPersistT (NoLoggingT (ResourceT IO)) a -> m a
+runSQL action =
+    runQuery $ \conn ->
+        runResourceT $ runNoLoggingT $ runSqlConn action conn

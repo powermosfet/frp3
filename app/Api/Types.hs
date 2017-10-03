@@ -1,10 +1,15 @@
 module Api.Types where
 
-import           Web.Spock
-import           Database.Persist.Sqlite hiding (get)
+import Web.Spock                (SpockCtxM, SpockActionCtx)
+import Database.Persist.Sqlite  (SqlBackend)
+-- import Web.Spock.SessionActions (SessionId)
 
+import Model                    (SessionId)
+import Config                   (Config)
 
-type Api = SpockM SqlBackend () () ()
+type SessionVal = Maybe SessionId
 
-type ApiAction a = SpockAction SqlBackend () () a
+type Api ctx = SpockCtxM ctx SqlBackend SessionVal Config ()
+
+type ApiAction ctx a = SpockActionCtx ctx SqlBackend SessionVal Config a
 

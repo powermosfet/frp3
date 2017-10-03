@@ -12,11 +12,11 @@
 
 module Model where
 
-import           Data.Text                      (Text)
-import           Data.Time.Clock                (UTCTime)
-import qualified Data.ByteString.Char8   as BS
-import           Database.Persist.Sqlite hiding (get)
-import           Database.Persist.TH
+import Data.Text                       (Text)
+import Data.Time.Clock                 (UTCTime)
+import qualified Data.ByteString.Char8 as BS
+import Database.Persist.Sqlite hiding (get)
+import Database.Persist.TH
 
 share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|
 Session
@@ -33,4 +33,3 @@ Cat json
   age Int
   deriving Show
 |]
-

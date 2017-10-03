@@ -15,26 +15,42 @@
 
 module Api where
 
-import           Web.Spock
-import           Network.Wai.Middleware.Static        (staticPolicy, addBase, only, (<|>))
-import           Data.Aeson                    hiding (json)
-import           Database.Persist              hiding (get)
+import Data.Aeson                    (object, (.=), Value(String))
+import Data.HVect                    (HVect(HNil))
+import Database.Persist              (insert, selectList, SelectOpt(Asc))
+import Network.Wai.Middleware.Static (staticPolicy, addBase, only, (<|>))
+import Web.Spock                     (json, get, post, readSession, prehook, jsonBody, middleware)
 
-import           DatabaseUtils (runSQL)
-import           JsonUtils     (errorJson)
-import           Api.Types     (Api, ApiAction)
-import           Model         (Cat, EntityField(CatName))
+import Api.Types                     (Api, ApiAction)
+import Auth                          (authHook)
+import Model                         (Cat , EntityField(CatName))
+import Model.User                    (loginAction, registerAction)
+import Utils.Database                (runSQL)
 
-app :: Api
+baseHook :: ApiAction () (HVect '[])
+baseHook = return HNil
+
+app :: Api ()
 app =
-  do middleware (staticPolicy ((only [("", "static/index.html")]) <|> (addBase "static")))
-     do get "cats" $ do
-          cats <- runSQL $ selectList [] [Asc CatName]
-          json cats
-        post "cats" $ do
-          maybeCat <- jsonBody :: ApiAction (Maybe Cat)
-          case maybeCat of
-            Nothing -> errorJson 1 "Failed to parse request body as Cat"
-            Just theCat -> do
-              newId <- runSQL $ insert theCat
-              json $ object ["result" .= String "success", "id" .= newId]
+  prehook baseHook $
+  do middleware (staticPolicy (only [("", "static/index.html")] <|> addBase "static"))
+     do post "login" $ do
+          mCredentials <- jsonBody
+          loginAction mCredentials
+        post "register" $ do
+          mUser <- jsonBody
+          registerAction mUser
+        prehook authHook $
+          do post "cats" $ do
+               (maybeCat :: Maybe Cat) <- jsonBody
+               case maybeCat of
+                 Nothing -> error "Failed to parse request body as Cat"
+                 Just theCat -> do
+                   newId <- runSQL $ insert theCat
+                   json $ object ["result" .= String "success", "id" .= newId]
+             get "cats" $ do
+               cats <- runSQL $ selectList [] [Asc CatName]
+               json cats
+             get "cookie" $ do
+                 session <- readSession
+                 json $ object ["result" .= String "success", "id" .= (show session)]

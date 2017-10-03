@@ -5,7 +5,8 @@ import Data.Maybe
 import Database.Persist.Sqlite
 import Database.Persist.Postgresql
 import Data.String.Conversions
-import Control.Monad.Logger (runStdoutLoggingT)
+import Control.Monad.Logger        (runStdoutLoggingT)
+import Data.Time                   (NominalDiffTime)
 
 import Config.DbConfig
 import Config.DbUrl
@@ -13,14 +14,16 @@ import Config.DbUrl
 data Config = Config 
     { configServerPort :: Int
     , configDbConfig :: DbConfig
+    , configSessionLifetime :: NominalDiffTime
     }
     deriving (Show)
 
 fromEnvironment :: [(String, String)] -> Config -> Config
-fromEnvironment env (Config defaultPort defaultDb) = 
+fromEnvironment env (Config defaultPort defaultDb defaultSessionLifetime) = 
     let
-        port = fromMaybe defaultPort $ fmap read $ lookup "PORT" env
-
+        readWithDefault dflt name fn = fromMaybe dflt $ fmap fn $ lookup name env
+        port = readWithDefault defaultPort "PORT" read
+        life = readWithDefault defaultSessionLifetime "SESSION_LIFETIME" (fromRational . read)
         dbConfig = either (const defaultDb) id
                     $ parseDbUrl
                     $ fromMaybe ""
@@ -29,6 +32,7 @@ fromEnvironment env (Config defaultPort defaultDb) =
         Config 
             { configServerPort = port
             , configDbConfig = dbConfig
+            , configSessionLifetime = life
             }
 
 makeDbPool :: Config -> IO ConnectionPool
