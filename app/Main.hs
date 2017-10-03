@@ -26,6 +26,7 @@ main = do
   let defaults = Config { configServerPort = 8080
                         , configDbConfig = SqliteConfig "api.db"
                         , configSessionLifetime = 5 * 3600
+                        , configPasswordStrength = 17
                         }
   env <- getEnvironment 
   let config = fromEnvironment env defaults

@@ -6,6 +6,7 @@ import Database.Persist.Sqlite
 import Database.Persist.Postgresql
 import Data.String.Conversions
 import Control.Monad.Logger        (runStdoutLoggingT)
+import Control.Applicative         ((<$>))
 import Data.Time                   (NominalDiffTime)
 
 import Config.DbConfig
@@ -15,16 +16,18 @@ data Config = Config
     { configServerPort :: Int
     , configDbConfig :: DbConfig
     , configSessionLifetime :: NominalDiffTime
+    , configPasswordStrength :: Int
     }
     deriving (Show)
 
 fromEnvironment :: [(String, String)] -> Config -> Config
-fromEnvironment env (Config defaultPort defaultDb defaultSessionLifetime) = 
+fromEnvironment env dflt = 
     let
-        readWithDefault dflt name fn = fromMaybe dflt $ fmap fn $ lookup name env
-        port = readWithDefault defaultPort "PORT" read
-        life = readWithDefault defaultSessionLifetime "SESSION_LIFETIME" (fromRational . read)
-        dbConfig = either (const defaultDb) id
+        readWithDefault field name fn = fromMaybe (field dflt) $ fn <$> lookup name env
+        port = readWithDefault configServerPort "PORT" read
+        life = readWithDefault configSessionLifetime "SESSION_LIFETIME" (fromRational . read)
+        strength = readWithDefault configPasswordStrength "PASSWORD_STRENGTH" read
+        dbConfig = either (const (configDbConfig dflt)) id
                     $ parseDbUrl
                     $ fromMaybe ""
                     $ lookup "DATABASE_URL" env
@@ -33,6 +36,7 @@ fromEnvironment env (Config defaultPort defaultDb defaultSessionLifetime) =
             { configServerPort = port
             , configDbConfig = dbConfig
             , configSessionLifetime = life
+            , configPasswordStrength = strength
             }
 
 makeDbPool :: Config -> IO ConnectionPool
