@@ -1,5 +1,4 @@
-{-# LANGUAGE EmptyDataDecls             #-}
-{-# LANGUAGE FlexibleContexts           #-}
+{-# LANGUAGE DeriveGeneric              #-}
 {-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE GADTs                      #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
@@ -7,16 +6,13 @@
 {-# LANGUAGE QuasiQuotes                #-}
 {-# LANGUAGE TemplateHaskell            #-}
 {-# LANGUAGE TypeFamilies               #-}
-{-# LANGUAGE DeriveGeneric              #-}
-{-# LANGUAGE OverloadedStrings          #-}
 
 module Model where
 
-import Data.Text                       (Text)
-import Data.Time.Clock                 (UTCTime)
+import Data.Text            (Text)
+import Data.Time.Clock      (UTCTime)
+import Database.Persist.TH  (persistLowerCase, share, mkPersist, mkMigrate, sqlSettings)
 import qualified Data.ByteString.Char8 as BS
-import Database.Persist.Sqlite hiding (get)
-import Database.Persist.TH
 
 share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|
 Session

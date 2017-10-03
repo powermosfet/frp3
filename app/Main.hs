@@ -1,25 +1,14 @@
-{-# LANGUAGE EmptyDataDecls             #-}
-{-# LANGUAGE FlexibleContexts           #-}
-{-# LANGUAGE FlexibleInstances          #-}
-{-# LANGUAGE GADTs                      #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE MultiParamTypeClasses      #-}
-{-# LANGUAGE QuasiQuotes                #-}
-{-# LANGUAGE TemplateHaskell            #-}
-{-# LANGUAGE TypeFamilies               #-}
-{-# LANGUAGE DeriveGeneric              #-}
-{-# LANGUAGE OverloadedStrings          #-}
+import Control.Applicative  ((<$>))
+import Control.Monad.Logger (runStdoutLoggingT)
+import Database.Persist.Sql (runSqlPool, runMigration)
+import System.Environment   (getEnvironment)
+import Web.Spock            (runSpock, spock)
+import Web.Spock.Config     (defaultSpockCfg, PoolOrConn(PCPool))
 
-import           Web.Spock
-import           Web.Spock.Config
-import           Control.Monad.Logger    (runStdoutLoggingT)
-import           Database.Persist.Sqlite hiding (get)
-import           System.Environment
-
-import Config          (fromEnvironment, Config(..), makeDbPool)
-import Config.DbConfig (DbConfig(SqliteConfig))
-import Api             (app)
-import Model           (migrateAll)
+import Api                  (app)
+import Config               (fromEnvironment, Config(..), makeDbPool)
+import Config.DbConfig      (DbConfig(SqliteConfig))
+import Model                (migrateAll)
 
 main :: IO ()
 main = do
@@ -28,8 +17,7 @@ main = do
                         , configSessionLifetime = 5 * 3600
                         , configPasswordStrength = 17
                         }
-  env <- getEnvironment 
-  let config = fromEnvironment env defaults
+  config <- fromEnvironment defaults <$> getEnvironment 
   print config
   pool <- makeDbPool config 
   runStdoutLoggingT $ runSqlPool (do runMigration migrateAll) pool

@@ -1,16 +1,16 @@
 module Config where
 
-import qualified Data.ByteString.Char8 as BS
-import Data.Maybe
-import Database.Persist.Sqlite
-import Database.Persist.Postgresql
-import Data.String.Conversions
-import Control.Monad.Logger        (runStdoutLoggingT)
 import Control.Applicative         ((<$>))
+import Control.Monad.Logger        (runStdoutLoggingT)
+import Data.Maybe                  (fromMaybe)
+import Data.String.Conversions     (cs)
 import Data.Time                   (NominalDiffTime)
+import Database.Persist.Postgresql (ConnectionString, createPostgresqlPool)
+import Database.Persist.Sqlite     (ConnectionPool, createSqlitePool)
+import qualified Data.ByteString.Char8 as BS
 
-import Config.DbConfig
-import Config.DbUrl
+import Config.DbConfig             (DbConfig(PostgresqlConfig, SqliteConfig))
+import Config.DbUrl                (parseDbUrl)
 
 data Config = Config 
     { configServerPort :: Int
@@ -20,8 +20,8 @@ data Config = Config
     }
     deriving (Show)
 
-fromEnvironment :: [(String, String)] -> Config -> Config
-fromEnvironment env dflt = 
+fromEnvironment :: Config -> [(String, String)] -> Config
+fromEnvironment dflt env = 
     let
         readWithDefault field name fn = fromMaybe (field dflt) $ fn <$> lookup name env
         port = readWithDefault configServerPort "PORT" read
@@ -52,14 +52,7 @@ makeDbPool cfg =
 
 
 toConnectionString :: DbConfig -> ConnectionString
-toConnectionString PostgresqlConfig
-    { postgresqlUser     = user
-    , postgresqlPassword = pass
-    , postgresqlHost     = host
-    , postgresqlPort     = port
-    , postgresqlDatabase = database
-    }
-    = 
+toConnectionString (PostgresqlConfig user pass host port database) =
     let
         fields = [ "host="
                  , "port="
