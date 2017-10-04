@@ -27,6 +27,7 @@ executable frp
                      , Utils.Json
                      , Model
                      , Model.Session
+                     , Model.Category
                      , Model.User
   build-depends:       base
                      , Spock

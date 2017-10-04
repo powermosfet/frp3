@@ -10,11 +10,12 @@ import Data.Aeson                    (object, (.=), Value(String))
 import Data.HVect                    (HVect(HNil))
 import Database.Persist              (insert, selectList, SelectOpt(Asc))
 import Network.Wai.Middleware.Static (staticPolicy, addBase, only, (<|>))
-import Web.Spock                     (json, get, post, readSession, prehook, jsonBody, middleware)
+import Web.Spock                     (json, get, post, prehook, jsonBody, middleware)
 
 import Api.Types                     (Api, ApiAction)
 import Auth                          (authHook)
 import Model                         (Cat , EntityField(CatName))
+import Model.Category                (categoryListAction, categoryCreateAction)
 import Model.User                    (loginAction, registerAction)
 import Utils.Database                (runSQL)
 
@@ -32,7 +33,9 @@ app =
           mUser <- jsonBody
           registerAction mUser
         prehook authHook $
-          do post "cats" $ do
+          do get  "category" categoryListAction
+             post "category" categoryCreateAction
+             post "cats" $ do
                (maybeCat :: Maybe Cat) <- jsonBody
                case maybeCat of
                  Nothing -> error "Failed to parse request body as Cat"
@@ -42,6 +45,3 @@ app =
              get "cats" $ do
                cats <- runSQL $ selectList [] [Asc CatName]
                json cats
-             get "cookie" $ do
-                 session <- readSession
-                 json $ object ["result" .= String "success", "id" .= show session]

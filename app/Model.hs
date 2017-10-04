@@ -24,6 +24,25 @@ User
   password BS.ByteString
   UniqueUsername username
   deriving Show Eq
+Category json
+  name Text
+  owner UserId
+  deriving Show
+Budget json
+  name Text
+  created UTCTime
+  owner UserId
+BudgetItem json
+  budget BudgetId
+  category CategoryId
+  amount Double
+  frequency Int
+  owner UserId
+Transaction json
+  timestamp UTCTime
+  category CategoryId
+  amount Double
+  owner UserId
 Cat json
   name Text
   age Int

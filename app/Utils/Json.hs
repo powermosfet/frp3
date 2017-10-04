@@ -1,14 +1,3 @@
-{-# LANGUAGE DataKinds                  #-}
-{-# LANGUAGE EmptyDataDecls             #-}
-{-# LANGUAGE FlexibleContexts           #-}
-{-# LANGUAGE FlexibleInstances          #-}
-{-# LANGUAGE GADTs                      #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE MultiParamTypeClasses      #-}
-{-# LANGUAGE QuasiQuotes                #-}
-{-# LANGUAGE TemplateHaskell            #-}
-{-# LANGUAGE TypeFamilies               #-}
-{-# LANGUAGE DeriveGeneric              #-}
 {-# LANGUAGE OverloadedStrings          #-}
 
 module Utils.Json where
@@ -24,9 +13,16 @@ data ErrorType
   | SessionExpired
   | ObjectNotFound
   | NoCredentials
-  | ParseErrorUser
+  | ParseError String
   | Unauthenticated
-  deriving (Enum)
+
+errorCode :: ErrorType -> Int
+errorCode LoginFailed     = 1
+errorCode SessionExpired  = 2
+errorCode ObjectNotFound  = 3
+errorCode NoCredentials   = 4
+errorCode (ParseError _)  = 5
+errorCode Unauthenticated = 6
 
 errorMessage :: ErrorType -> String
 errorMessage err = case err of
@@ -34,7 +30,7 @@ errorMessage err = case err of
   SessionExpired -> "Session expired"
   ObjectNotFound -> "Object not found"
   NoCredentials -> "Could not parse credentials"
-  ParseErrorUser -> "Could not parse user"
+  ParseError model -> "Could not parse " ++ model
   Unauthenticated -> "Please log in to access this resource"
 
 statusCode :: ErrorType -> Http.Status
@@ -44,7 +40,7 @@ statusCode _ = Http.status200
 errorJson :: ErrorType -> ApiAction ctx a
 errorJson err =
   let
-    code = fromEnum err
+    code = errorCode err
     message = errorMessage err
   in do
     setStatus (statusCode err)
@@ -60,4 +56,4 @@ succesWithId theId =
 
 succesWithMessage :: String -> ApiAction ctx a
 succesWithMessage msg = 
-  json $ object ["result" .= String "success", "id" .= msg]
+  json $ object ["result" .= String "success", "message" .= msg]

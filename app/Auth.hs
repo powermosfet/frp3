@@ -1,11 +1,12 @@
 {-# LANGUAGE TypeOperators              #-}
+{-# LANGUAGE TypeFamilies                #-}
 {-# LANGUAGE DataKinds                  #-}
 
 module Auth where
 
 import Web.Spock            (readSession, getState, getContext)
 import Database.Persist.Sql (get, SqlPersistM)
-import Data.HVect           (HVect((:&:)))
+import Data.HVect           (HVect((:&:)), findFirst, ListContains)
 import Data.Time            (NominalDiffTime, getCurrentTime)
 import Control.Monad.Trans  (liftIO)
 
@@ -25,6 +26,11 @@ authHook =
                errorJson Unauthenticated
            Just val ->
                return (val :&: oldCtx)
+
+userIdFromSession :: ListContains n (UserId, User) xs => ApiAction (HVect xs) UserId
+userIdFromSession = do
+  ctx <- getContext
+  return $ fst $ (findFirst ctx :: (UserId, User))
 
 maybeUser :: (Maybe (UserId, User) -> ApiAction ctx a) -> ApiAction ctx a
 maybeUser action =
