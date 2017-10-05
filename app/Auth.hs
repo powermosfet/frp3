@@ -15,7 +15,7 @@ import Config         (configSessionLifetime)
 import Model          (User, UserId, SessionId, sessionUserId, HasOwner, getOwner)
 import Model.Session  (validateSession)
 import Utils.Database (runSQL)
-import Utils.Json     (errorJson, ErrorType(Unauthenticated))
+import Utils.Json     (errorJson, ErrorType(Unauthenticated, Forbidden, NotFound))
 
 authHook :: ApiAction (HVect xs) (HVect ((UserId, User) ': xs))
 authHook =
@@ -59,10 +59,14 @@ data OwnerCheckResult a
   = Ok UserId a
   | Failed
 
-checkOwner :: (HasOwner a, PersistEntity a, PersistEntityBackend a ~ SqlBackend, ListContains n (UserId, User) xs) => Key a -> ApiAction (HVect xs) (OwnerCheckResult a)
-checkOwner theId = do
+checkOwner :: (HasOwner a, PersistEntity a, PersistEntityBackend a ~ SqlBackend, ListContains n (UserId, User) xs) =>
+                Key a ->
+                (UserId -> a ->ApiAction (HVect xs) ()) -> 
+                ApiAction (HVect xs) ()
+checkOwner theId okCallback = do
   owner <- userIdFromSession
   maybeObject <- runSQL $ get theId
   case maybeObject of
-    Just object | getOwner object == owner -> return (Ok owner object)
-    _ -> return Failed
+    Just object | getOwner object == owner -> okCallback owner object
+    Nothing -> errorJson NotFound
+    _ -> errorJson Forbidden
