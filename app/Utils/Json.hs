@@ -15,6 +15,8 @@ data ErrorType
   | NoCredentials
   | ParseError String
   | Unauthenticated
+  | NotFound
+  | Forbidden
 
 errorCode :: ErrorType -> Int
 errorCode LoginFailed     = 1
@@ -23,6 +25,8 @@ errorCode ObjectNotFound  = 3
 errorCode NoCredentials   = 4
 errorCode (ParseError _)  = 5
 errorCode Unauthenticated = 6
+errorCode NotFound        = 7
+errorCode Forbidden       = 8
 
 errorMessage :: ErrorType -> String
 errorMessage err = case err of
@@ -32,9 +36,13 @@ errorMessage err = case err of
   NoCredentials -> "Could not parse credentials"
   ParseError model -> "Could not parse " ++ model
   Unauthenticated -> "Please log in to access this resource"
+  NotFound -> "Could not find resource"
+  Forbidden -> "Action is not allowed"
 
 statusCode :: ErrorType -> Http.Status
 statusCode Unauthenticated = Http.status401
+statusCode NotFound = Http.status404
+statusCode Forbidden = Http.status403
 statusCode _ = Http.status200
 
 errorJson :: ErrorType -> ApiAction ctx a

@@ -7,7 +7,7 @@ module Model.User where
 import Crypto.PasswordStore (makePassword, verifyPassword)
 import Data.Aeson           (FromJSON(parseJSON), withObject, (.:))
 import Database.Persist.Sql (Entity(Entity), (==.), selectFirst, insert)
-import Web.Spock            (writeSession)
+import Web.Spock            (jsonBody, writeSession)
 import Data.HVect           (HVect)
 import Data.Text            (Text)
 import Control.Monad.Trans  (liftIO)
@@ -34,8 +34,9 @@ instance FromJSON Credentials where
 
 type NewUser = Credentials
 
-loginAction :: Maybe Credentials -> ApiAction (HVect '[]) ()
-loginAction mCredentials =
+loginAction :: ApiAction (HVect '[]) ()
+loginAction = do
+  mCredentials <- jsonBody
   case mCredentials of
     Just (Credentials username password) -> do
       mUser <- runSQL $ selectFirst [UserUsername ==. username] []
@@ -49,8 +50,9 @@ loginAction mCredentials =
         Nothing -> errorJson LoginFailed
     Nothing -> errorJson NoCredentials
 
-registerAction :: Maybe NewUser -> ApiAction (HVect '[]) ()
-registerAction mUser =
+registerAction :: ApiAction (HVect '[]) ()
+registerAction = do
+  mUser <- jsonBody
   case mUser of
     Nothing -> errorJson (ParseError "user")
     Just newUser -> do

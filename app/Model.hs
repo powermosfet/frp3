@@ -48,3 +48,9 @@ Cat json
   age Int
   deriving Show
 |]
+
+class HasOwner a where
+  getOwner :: a -> UserId
+
+instance HasOwner Category where
+  getOwner = categoryOwner

@@ -1,18 +1,18 @@
 {-# LANGUAGE TypeOperators              #-}
-{-# LANGUAGE TypeFamilies                #-}
+{-# LANGUAGE TypeFamilies               #-}
 {-# LANGUAGE DataKinds                  #-}
 
 module Auth where
 
 import Web.Spock            (readSession, getState, getContext)
-import Database.Persist.Sql (get, SqlPersistM)
+import Database.Persist.Sql (get, SqlPersistM, Key, PersistEntity, PersistEntityBackend, SqlBackend)
 import Data.HVect           (HVect((:&:)), findFirst, ListContains)
 import Data.Time            (NominalDiffTime, getCurrentTime)
 import Control.Monad.Trans  (liftIO)
 
 import Api.Types      (ApiAction)
 import Config         (configSessionLifetime)
-import Model          (User, UserId, SessionId, sessionUserId)
+import Model          (User, UserId, SessionId, sessionUserId, HasOwner, getOwner)
 import Model.Session  (validateSession)
 import Utils.Database (runSQL)
 import Utils.Json     (errorJson, ErrorType(Unauthenticated))
@@ -30,7 +30,7 @@ authHook =
 userIdFromSession :: ListContains n (UserId, User) xs => ApiAction (HVect xs) UserId
 userIdFromSession = do
   ctx <- getContext
-  return $ fst $ (findFirst ctx :: (UserId, User))
+  return $ fst (findFirst ctx :: (UserId, User))
 
 maybeUser :: (Maybe (UserId, User) -> ApiAction ctx a) -> ApiAction ctx a
 maybeUser action =
@@ -54,3 +54,15 @@ loadUser sessId sessionLifetime =
                 return $ fmap (\user -> (sessionUserId sess, user)) mUser
          _ ->
              return Nothing
+
+data OwnerCheckResult a
+  = Ok UserId a
+  | Failed
+
+checkOwner :: (HasOwner a, PersistEntity a, PersistEntityBackend a ~ SqlBackend, ListContains n (UserId, User) xs) => Key a -> ApiAction (HVect xs) (OwnerCheckResult a)
+checkOwner theId = do
+  owner <- userIdFromSession
+  maybeObject <- runSQL $ get theId
+  case maybeObject of
+    Just object | getOwner object == owner -> return (Ok owner object)
+    _ -> return Failed
