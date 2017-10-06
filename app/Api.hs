@@ -8,11 +8,11 @@ module Api where
 
 import Data.HVect                    (HVect(HNil))
 import Network.Wai.Middleware.Static (staticPolicy, addBase, only, (<|>))
-import Web.Spock                     (get, post, put, var, prehook, middleware, (<//>))
+import Web.Spock                     (get, post, put, delete, var, prehook, middleware, (<//>))
 
 import Api.Types                     (Api, ApiAction)
 import Auth                          (authHook)
-import Model.Category                (categoryListAction, categoryCreateAction, categoryGetAction, categoryChangeAction)
+import Model.Category                (categoryListAction, categoryCreateAction, categoryGetAction, categoryChangeAction, categoryDeleteAction)
 import Model.User                    (loginAction, registerAction)
 
 baseHook :: ApiAction () (HVect '[])
@@ -24,7 +24,8 @@ app = prehook baseHook $
      do post "login" loginAction
         post "register" registerAction 
         prehook authHook $
-          do get  "category" categoryListAction
-             post "category" categoryCreateAction
-             get ("category" <//> var) categoryGetAction
-             put ("category" <//> var) categoryChangeAction
+          do get     "category"           categoryListAction
+             post    "category"           categoryCreateAction
+             get    ("category" <//> var) categoryGetAction
+             put    ("category" <//> var) categoryChangeAction
+             delete ("category" <//> var) categoryDeleteAction

@@ -58,6 +58,14 @@ errorJson err =
         , "error" .= object ["code" .= code, "message" .= message]
         ]
 
+data SuccessType a
+  = Created a
+
+successJson :: (ToJSON a) => SuccessType a -> ApiAction ctx b
+successJson (Created ob) = do
+  setStatus Http.status201
+  json ob
+
 succesWithId :: (ToJSON a) => a -> ApiAction ctx b
 succesWithId theId = 
   json $ object ["result" .= String "success", "id" .= theId]

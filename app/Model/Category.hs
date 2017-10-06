@@ -4,7 +4,7 @@
 
 module Model.Category where
 
-import Database.Persist.Sql ((==.), selectList, insert, replace, SelectOpt(Asc))
+import Database.Persist.Sql ((==.), selectList, insert, replace, delete, SelectOpt(Asc), Entity(Entity))
 import Web.Spock            (json, jsonBody)
 import Data.HVect           (HVect, ListContains)
 
@@ -12,7 +12,7 @@ import Auth             (userIdFromSession, checkOwner)
 import Api.Types        (ApiAction)
 import Model            (User, UserId, categoryOwner, CategoryId, EntityField(CategoryOwner, CategoryName))
 import Utils.Database   (runSQL)
-import Utils.Json       (errorJson, succesWithId, ErrorType(ParseError))
+import Utils.Json       (errorJson, ErrorType(ParseError), successJson, SuccessType(Created))
 
 categoryListAction :: ListContains n (UserId, User) xs => ApiAction (HVect xs) ()
 categoryListAction = do
@@ -29,11 +29,11 @@ categoryCreateAction = do
       userId <- userIdFromSession
       let theCategory' = theCategory { categoryOwner = userId }
       newId <- runSQL $ insert theCategory'
-      succesWithId newId
+      json $ Entity newId theCategory
 
 categoryGetAction :: ListContains n (UserId, User) xs => CategoryId -> ApiAction (HVect xs) ()
 categoryGetAction categoryId =
-  checkOwner categoryId $ \_ category -> json category
+  checkOwner categoryId $ \_ category -> json $ Entity categoryId category
 
 categoryChangeAction :: ListContains n (UserId, User) xs => CategoryId -> ApiAction (HVect xs) ()
 categoryChangeAction categoryId = do
@@ -42,6 +42,10 @@ categoryChangeAction categoryId = do
     Just putCategory -> checkOwner categoryId $ \owner _ -> do
         let newCategory = putCategory { categoryOwner = owner }
         runSQL $ replace categoryId newCategory
-        json newCategory
+        successJson $ Created $ Entity categoryId newCategory
     _ -> errorJson $ ParseError "category"
+
+categoryDeleteAction :: ListContains n (UserId, User) xs => CategoryId -> ApiAction (HVect xs) ()
+categoryDeleteAction categoryId =
+  checkOwner categoryId $ \_ _ -> runSQL $ delete categoryId
 
