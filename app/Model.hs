@@ -54,3 +54,9 @@ class HasOwner a where
 
 instance HasOwner Category where
   getOwner = categoryOwner
+
+instance HasOwner Budget where
+  getOwner = budgetOwner
+
+instance HasOwner BudgetItem where
+  getOwner = budgetItemOwner

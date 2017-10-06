@@ -28,6 +28,8 @@ executable frp
                      , Model
                      , Model.Session
                      , Model.Category
+                     , Model.Budget
+                     , Model.BudgetItem
                      , Model.User
   build-depends:       base
                      , Spock
