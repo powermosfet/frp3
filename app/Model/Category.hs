@@ -12,7 +12,7 @@ import Auth             (userIdFromSession, checkOwner)
 import Api.Types        (ApiAction)
 import Model            (User, UserId, categoryOwner, CategoryId, EntityField(CategoryOwner, CategoryName))
 import Utils.Database   (runSQL)
-import Utils.Json       (errorJson, ErrorType(ParseError), successJson, SuccessType(Created))
+import Utils.Json       (errorJson, ErrorType(ParseError), successJson, SuccessType(Created, Changed))
 
 categoryListAction :: ListContains n (UserId, User) xs => ApiAction (HVect xs) ()
 categoryListAction = do
@@ -29,7 +29,7 @@ categoryCreateAction = do
       userId <- userIdFromSession
       let theCategory' = theCategory { categoryOwner = userId }
       newId <- runSQL $ insert theCategory'
-      json $ Entity newId theCategory
+      successJson $ Created $ Entity newId theCategory
 
 categoryGetAction :: ListContains n (UserId, User) xs => CategoryId -> ApiAction (HVect xs) ()
 categoryGetAction categoryId =
@@ -42,7 +42,7 @@ categoryChangeAction categoryId = do
     Just putCategory -> checkOwner categoryId $ \owner _ -> do
         let newCategory = putCategory { categoryOwner = owner }
         runSQL $ replace categoryId newCategory
-        successJson $ Created $ Entity categoryId newCategory
+        successJson $ Changed $ Entity categoryId newCategory
     _ -> errorJson $ ParseError "category"
 
 categoryDeleteAction :: ListContains n (UserId, User) xs => CategoryId -> ApiAction (HVect xs) ()

@@ -65,10 +65,7 @@ successJson :: (ToJSON a) => SuccessType a -> ApiAction ctx b
 successJson (Created ob) = do
   setStatus Http.status201
   json ob
-
-succesWithId :: (ToJSON a) => a -> ApiAction ctx b
-succesWithId theId = 
-  json $ object ["result" .= String "success", "id" .= theId]
+successJson (Changed ob) = json ob
 
 succesWithMessage :: String -> ApiAction ctx a
 succesWithMessage msg = 
