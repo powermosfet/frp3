@@ -29,7 +29,7 @@ categoryCreateAction = do
       userId <- userIdFromSession
       let theCategory' = theCategory { categoryOwner = userId }
       newId <- runSQL $ insert theCategory'
-      successJson $ Created $ Entity newId theCategory
+      successJson $ Created $ Entity newId theCategory'
 
 categoryGetAction :: ListContains n (UserId, User) xs => CategoryId -> ApiAction (HVect xs) ()
 categoryGetAction categoryId =
