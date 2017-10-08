@@ -4,7 +4,7 @@
 
 module Model.Budget where
 
-import Database.Persist.Sql ((==.), selectList, insert, replace, delete, SelectOpt(Asc), Entity(Entity))
+import Database.Persist.Sql ((==.), selectList, insert, replace, delete, SelectOpt(Asc), Entity(Entity), entityDef)
 import Web.Spock            (json, jsonBody)
 import Data.HVect           (HVect, ListContains)
 import Data.Time            (getCurrentTime)
@@ -26,7 +26,7 @@ budgetCreateAction :: ListContains n (UserId, User) xs => ApiAction (HVect xs) (
 budgetCreateAction = do 
   maybeBudget <- jsonBody
   case maybeBudget of
-    Nothing -> errorJson (ParseError "budget")
+    Nothing -> errorJson (ParseError (entityDef maybeBudget))
     Just theBudget -> do
       userId <- userIdFromSession
       now <- liftIO getCurrentTime
@@ -48,7 +48,7 @@ budgetChangeAction budgetId = do
         let newBudget = putBudget { budgetOwner = owner }
         runSQL $ replace budgetId newBudget
         successJson $ Changed $ Entity budgetId newBudget
-    _ -> errorJson $ ParseError "budget"
+    _ -> errorJson $ ParseError (entityDef maybePutBudget)
 
 budgetDeleteAction :: ListContains n (UserId, User) xs => BudgetId -> ApiAction (HVect xs) ()
 budgetDeleteAction budgetId =

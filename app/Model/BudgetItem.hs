@@ -4,7 +4,7 @@
 
 module Model.BudgetItem where
 
-import Database.Persist.Sql ((==.), selectList, insert, replace, delete, Entity(Entity))
+import Database.Persist.Sql ((==.), selectList, insert, replace, delete, Entity(Entity), entityDef)
 import Web.Spock            (json, jsonBody)
 import Data.HVect           (HVect, ListContains)
 
@@ -24,7 +24,7 @@ budgetItemCreateAction :: ListContains n (UserId, User) xs => ApiAction (HVect x
 budgetItemCreateAction = do 
   maybeBudgetItem <- jsonBody
   case maybeBudgetItem of
-    Nothing -> errorJson (ParseError "budgetItem")
+    Nothing -> errorJson (ParseError (entityDef maybeBudgetItem))
     Just theBudgetItem -> checkOwner (budgetItemBudget theBudgetItem) $ \owner _ -> do
       let theBudgetItem' = theBudgetItem { budgetItemOwner = owner }
       newId <- runSQL $ insert theBudgetItem'
@@ -44,7 +44,7 @@ budgetItemChangeAction budgetItemId = do
           let newBudgetItem = putBudgetItem { budgetItemOwner = owner }
           runSQL $ replace budgetItemId newBudgetItem
           successJson $ Changed $ Entity budgetItemId newBudgetItem
-    _ -> errorJson $ ParseError "budgetItem"
+    _ -> errorJson $ ParseError (entityDef maybePutBudgetItem)
 
 budgetItemDeleteAction :: ListContains n (UserId, User) xs => BudgetItemId -> ApiAction (HVect xs) ()
 budgetItemDeleteAction budgetItemId =

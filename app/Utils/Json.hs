@@ -3,17 +3,20 @@
 module Utils.Json where
 
 import           Web.Spock        (json, setStatus)
+import           Data.Text        (Text)
+import           Data.Monoid      ((<>))
+import           Database.Persist (entityFields, HaskellName(HaskellName), unHaskellName, entityHaskell, fieldHaskell, EntityDef)
 import           Data.Aeson       (Value(String), object, (.=), ToJSON)
 import qualified Network.HTTP.Types.Status as Http
 
-import           Api.Types (ApiAction)
+import           Api.Types        (ApiAction)
 
-data ErrorType 
+data ErrorType
   = LoginFailed
   | SessionExpired
   | ObjectNotFound
   | NoCredentials
-  | ParseError String
+  | ParseError EntityDef
   | Unauthenticated
   | NotFound
   | Forbidden
@@ -28,13 +31,17 @@ errorCode Unauthenticated = 6
 errorCode NotFound        = 7
 errorCode Forbidden       = 8
 
-errorMessage :: ErrorType -> String
+errorMessage :: ErrorType -> Text
 errorMessage err = case err of
   LoginFailed -> "Username or password is wrong"
   SessionExpired -> "Session expired"
   ObjectNotFound -> "Object not found"
   NoCredentials -> "Could not parse credentials"
-  ParseError model -> "Could not parse " ++ model
+  ParseError entity -> 
+    let
+      modelName = (unHaskellName . entityHaskell) entity
+    in
+      "Could not parse " <> modelName
   Unauthenticated -> "Please log in to access this resource"
   NotFound -> "Could not find resource"
   Forbidden -> "Action is not allowed"
@@ -45,17 +52,33 @@ statusCode NotFound = Http.status404
 statusCode Forbidden = Http.status403
 statusCode _ = Http.status200
 
+metadata :: ErrorType -> Maybe Value
+metadata (ParseError entity) =
+  let
+    fields = entityFields entity
+    fieldStrings = map ((\(HaskellName name) -> name) . fieldHaskell) fields
+  in
+    Just $ object [ "fields" .= fieldStrings ]
+metadata _ = Nothing
+
 errorJson :: ErrorType -> ApiAction ctx a
 errorJson err =
   let
     code = errorCode err
     message = errorMessage err
+    errorObject = object
+      ( [ "code" .= code
+        , "message" .= message
+        ] ++ case metadata err of
+              Just theMetadata -> [ "metadata" .= theMetadata ]
+              Nothing -> []
+      )
   in do
     setStatus (statusCode err)
     json $
       object
         [ "result" .= String "failure"
-        , "error" .= object ["code" .= code, "message" .= message]
+        , "error" .= errorObject
         ]
 
 data SuccessType a

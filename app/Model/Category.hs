@@ -4,7 +4,7 @@
 
 module Model.Category where
 
-import Database.Persist.Sql ((==.), selectList, insert, replace, delete, SelectOpt(Asc), Entity(Entity))
+import Database.Persist.Sql ((==.), selectList, insert, replace, delete, SelectOpt(Asc), Entity(Entity), entityDef)
 import Web.Spock            (json, jsonBody)
 import Data.HVect           (HVect, ListContains)
 
@@ -24,7 +24,7 @@ categoryCreateAction :: ListContains n (UserId, User) xs => ApiAction (HVect xs)
 categoryCreateAction = do 
   maybeCategory <- jsonBody
   case maybeCategory of
-    Nothing -> errorJson (ParseError "category")
+    Nothing -> errorJson (ParseError (entityDef maybeCategory))
     Just theCategory -> do
       userId <- userIdFromSession
       let theCategory' = theCategory { categoryOwner = userId }
@@ -43,7 +43,7 @@ categoryChangeAction categoryId = do
         let newCategory = putCategory { categoryOwner = owner }
         runSQL $ replace categoryId newCategory
         successJson $ Changed $ Entity categoryId newCategory
-    _ -> errorJson $ ParseError "category"
+    _ -> errorJson $ ParseError (entityDef maybePutCategory)
 
 categoryDeleteAction :: ListContains n (UserId, User) xs => CategoryId -> ApiAction (HVect xs) ()
 categoryDeleteAction categoryId =

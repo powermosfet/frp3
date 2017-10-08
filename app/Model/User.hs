@@ -18,7 +18,7 @@ import Model            ( User(User)
                         , EntityField(UserUsername)
                         )
 import Model.Session    (createSession)
-import Utils.Json       (errorJson, ErrorType(LoginFailed, NoCredentials, ParseError), succesWithId, succesWithMessage)
+import Utils.Json       (errorJson, ErrorType(LoginFailed, NoCredentials), succesWithId, succesWithMessage)
 import Utils.Database   (runSQL)
 
 data Credentials = Credentials
@@ -54,7 +54,7 @@ registerAction :: ApiAction (HVect '[]) ()
 registerAction = do
   mUser <- jsonBody
   case mUser of
-    Nothing -> errorJson (ParseError "user")
+    Nothing -> errorJson NoCredentials
     Just newUser -> do
       theUser <- liftIO $ makeUser newUser 
       newId <- runSQL $ insert theUser
