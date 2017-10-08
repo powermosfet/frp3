@@ -30,6 +30,7 @@ executable frp
                      , Model.Category
                      , Model.Budget
                      , Model.BudgetItem
+                     , Model.Transaction
                      , Model.User
   build-depends:       base
                      , Spock

@@ -43,9 +43,6 @@ Transaction json
   category CategoryId
   amount Double
   owner UserId
-Cat json
-  name Text
-  age Int
   deriving Show
 |]
 
