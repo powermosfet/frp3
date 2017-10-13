@@ -25,6 +25,7 @@ executable frp
                      , Config.DbUrl
                      , Utils.Database
                      , Utils.Json
+                     , Utils.Utils
                      , Model
                      , Model.Session
                      , Model.Category

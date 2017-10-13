@@ -70,3 +70,25 @@ checkOwner theId okCallback = do
     Just object | getOwner object == owner -> okCallback owner object
     Nothing -> errorJson NotFound
     _ -> errorJson Forbidden
+
+checkOwner' :: (HasOwner a, PersistEntity a, PersistEntityBackend a ~ SqlBackend) =>
+                UserId -> Maybe a -> Either (ApiAction (HVect xs) ()) a
+checkOwner' owner (Just object) 
+    | getOwner object == owner = Right object
+    | otherwise = Left $ errorJson Forbidden
+checkOwner' _ _ = Left $ errorJson NotFound
+
+checkOwner'' :: (HasOwner a, PersistEntity a, PersistEntityBackend a ~ SqlBackend, ListContains n (UserId, User) xs) =>
+    ApiAction (HVect xs) (Maybe a) -> ApiAction (HVect xs) (UserId, Either (ApiAction (HVect xs) ()) a)
+checkOwner'' getAction = do
+    owner <- userIdFromSession
+    maybeObject <- getAction
+    return $ (,) owner $ case maybeObject of
+        Just object | getOwner object == owner -> Right object
+        Nothing -> Left $ errorJson NotFound
+        _ -> Left $ errorJson Forbidden
+
+eAction :: Either a a -> a
+eAction (Left  action) = action
+eAction (Right action) = action
+

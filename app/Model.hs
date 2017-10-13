@@ -40,6 +40,7 @@ BudgetItem json
   owner UserId
 Transaction json
   timestamp UTCTime
+  budget BudgetId
   category CategoryId
   amount Double
   owner UserId
@@ -57,3 +58,6 @@ instance HasOwner Budget where
 
 instance HasOwner BudgetItem where
   getOwner = budgetItemOwner
+
+instance HasOwner Transaction where
+  getOwner = transactionOwner

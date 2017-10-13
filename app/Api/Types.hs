@@ -12,4 +12,3 @@ type SessionVal = Maybe SessionId
 type Api ctx = SpockCtxM ctx SqlBackend SessionVal Config ()
 
 type ApiAction ctx a = SpockActionCtx ctx SqlBackend SessionVal Config a
-
