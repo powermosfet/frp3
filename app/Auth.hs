@@ -5,7 +5,7 @@
 module Auth where
 
 import Web.Spock            (readSession, getState, getContext)
-import Database.Persist.Sql (get, SqlPersistM, Key, PersistEntity, PersistEntityBackend, SqlBackend)
+import Database.Persist.Sql (get, SqlPersistM, PersistEntity, PersistEntityBackend, SqlBackend)
 import Data.HVect           (HVect((:&:)), findFirst, ListContains)
 import Data.Time            (NominalDiffTime, getCurrentTime)
 import Control.Monad.Trans  (liftIO)
@@ -59,18 +59,6 @@ data OwnerCheckResult a
   = Ok UserId a
   | Failed
 
-checkOwner :: (HasOwner a, PersistEntity a, PersistEntityBackend a ~ SqlBackend, ListContains n (UserId, User) xs) =>
-                Key a ->
-                (UserId -> a ->ApiAction (HVect xs) ()) -> 
-                ApiAction (HVect xs) ()
-checkOwner theId okCallback = do
-  owner <- userIdFromSession
-  maybeObject <- runSQL $ get theId
-  case maybeObject of
-    Just object | getOwner object == owner -> okCallback owner object
-    Nothing -> errorJson NotFound
-    _ -> errorJson Forbidden
-
 checkOwner' :: (HasOwner a, PersistEntity a, PersistEntityBackend a ~ SqlBackend) =>
                 UserId -> Maybe a -> Either (ApiAction (HVect xs) ()) a
 checkOwner' owner (Just object) 
@@ -78,9 +66,9 @@ checkOwner' owner (Just object)
     | otherwise = Left $ errorJson Forbidden
 checkOwner' _ _ = Left $ errorJson NotFound
 
-checkOwner'' :: (HasOwner a, PersistEntity a, PersistEntityBackend a ~ SqlBackend, ListContains n (UserId, User) xs) =>
+checkOwner :: (HasOwner a, PersistEntity a, PersistEntityBackend a ~ SqlBackend, ListContains n (UserId, User) xs) =>
     ApiAction (HVect xs) (Maybe a) -> ApiAction (HVect xs) (UserId, Either (ApiAction (HVect xs) ()) a)
-checkOwner'' getAction = do
+checkOwner getAction = do
     owner <- userIdFromSession
     maybeObject <- getAction
     return $ (,) owner $ case maybeObject of

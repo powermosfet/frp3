@@ -4,13 +4,13 @@
 
 module Model.Category where
 
-import Database.Persist.Sql ((==.), selectList, insert, replace, delete, SelectOpt(Asc), Entity(Entity), entityDef)
+import Database.Persist.Sql ((==.), selectList, get, insert, replace, delete, SelectOpt(Asc), Entity(Entity), entityDef)
 import Web.Spock            (json, jsonBody)
 import Data.HVect           (HVect, ListContains)
 
-import Auth             (userIdFromSession, checkOwner)
+import Auth             (eAction, userIdFromSession, checkOwner)
 import Api.Types        (ApiAction)
-import Model            (User, UserId, categoryOwner, CategoryId, EntityField(CategoryOwner, CategoryName))
+import Model            (User, UserId, Category, categoryOwner, CategoryId, EntityField(CategoryOwner, CategoryName))
 import Utils.Database   (runSQL)
 import Utils.Json       (errorJson, ErrorType(ParseError), successJson, SuccessType(Created, Changed))
 
@@ -22,30 +22,33 @@ categoryListAction = do
 
 categoryCreateAction :: ListContains n (UserId, User) xs => ApiAction (HVect xs) ()
 categoryCreateAction = do 
-  maybeCategory <- jsonBody
-  case maybeCategory of
-    Nothing -> errorJson (ParseError (entityDef maybeCategory))
-    Just theCategory -> do
-      userId <- userIdFromSession
-      let theCategory' = theCategory { categoryOwner = userId }
-      newId <- runSQL $ insert theCategory'
-      successJson $ Created $ Entity newId theCategory'
+    (userId, eCategory) <- checkOwner jsonBody
+    case eCategory of
+        Left x -> x
+        Right theCategory -> do
+            let theCategory' = theCategory { categoryOwner = userId }
+            newId <- runSQL $ insert theCategory'
+            successJson $ Created $ Entity newId theCategory'
 
 categoryGetAction :: ListContains n (UserId, User) xs => CategoryId -> ApiAction (HVect xs) ()
-categoryGetAction categoryId =
-  checkOwner categoryId $ \_ category -> json $ Entity categoryId category
+categoryGetAction categoryId = do
+    (_, eCategory) <- checkOwner $ runSQL $ get categoryId
+    eAction $ json . Entity categoryId <$> eCategory
 
 categoryChangeAction :: ListContains n (UserId, User) xs => CategoryId -> ApiAction (HVect xs) ()
 categoryChangeAction categoryId = do
-  maybePutCategory <- jsonBody
-  case maybePutCategory of
-    Just putCategory -> checkOwner categoryId $ \owner _ -> do
-        let newCategory = putCategory { categoryOwner = owner }
-        runSQL $ replace categoryId newCategory
-        successJson $ Changed $ Entity categoryId newCategory
-    _ -> errorJson $ ParseError (entityDef maybePutCategory)
+    (_, eCategory) <- checkOwner jsonBody
+    case eCategory of
+        Right putCategory -> do
+            runSQL $ replace categoryId putCategory
+            successJson $ Changed $ Entity categoryId putCategory
+        _ -> errorJson $ ParseError (entityDef (undefined :: Maybe Category))
 
 categoryDeleteAction :: ListContains n (UserId, User) xs => CategoryId -> ApiAction (HVect xs) ()
-categoryDeleteAction categoryId =
-  checkOwner categoryId $ \_ _ -> runSQL $ delete categoryId
+categoryDeleteAction categoryId = do
+    (_, eCategory) <- checkOwner $ runSQL $ get categoryId
+    case eCategory of
+        Left x -> x
+        Right _ -> do
+            runSQL $ delete categoryId
 
