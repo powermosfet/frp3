@@ -22,7 +22,7 @@ type alias Budget =
 type alias BudgetItem =
     { budget : Int
     , category : Int
-    , amount : Double
+    , amount : Float
     , frequenct : Int
     }
 
