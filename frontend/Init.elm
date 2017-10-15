@@ -1,10 +1,11 @@
 module Init exposing (..)
 
+import RemoteData exposing (RemoteData(NotAsked))
 import Model exposing (Model)
 import Message exposing (Msg)
-import Command exposing (getCats)
+import Command exposing (getBudgets)
 
 
 init : ( Model, Cmd Msg )
 init =
-    ( { cats = [] }, getCats )
+    ( { budgets = NotAsked }, getBudgets )

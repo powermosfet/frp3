@@ -1,8 +1,8 @@
 module Message exposing (..)
 
-import Http
-import Model exposing (Cat)
+import RemoteData exposing (WebData)
+import Model exposing (Budget)
 
 
 type Msg
-    = NewCats (Result Http.Error (List Cat))
+    = NewBudgets (WebData (List Budget))

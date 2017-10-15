@@ -1,35 +1,34 @@
 module Model exposing (..)
 
+import RemoteData exposing (WebData)
 import Http
 
 
-type alias Entity a =
-    { a | id : Int }
-
-
-type alias Owned a =
-    { a | owner : Int }
+type Id
+    = Id Int
+    | New
 
 
 type alias Category =
-    { name : String }
+    { id : Id
+    , name : String
+    }
 
 
 type alias Budget =
-    { name : String }
+    { id : Id
+    , name : String
+    }
 
 
 type alias BudgetItem =
-    { budget : Int
+    { id : Id
+    , budget : Int
     , category : Int
     , amount : Float
     , frequenct : Int
     }
 
 
-type alias Cat =
-    { name : String }
-
-
 type alias Model =
-    { cats : List Cat }
+    { budgets : WebData (List Budget) }

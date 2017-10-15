@@ -1,23 +1,34 @@
 module Command exposing (..)
 
 import Http
+import RemoteData
 import Json.Decode exposing (..)
 import Message exposing (Msg(..))
-import Model exposing (Cat)
+import Model exposing (Id(..), Budget)
 
 
-catDecoder : Decoder Cat
-catDecoder =
-    map Cat (field "name" string)
+maybeToId : Maybe Int -> Id
+maybeToId mId =
+    Maybe.map Id mId
+        |> Maybe.withDefault New
 
 
-getCats : Cmd Msg
-getCats =
+idDecoder : Decoder Id
+idDecoder =
+    map (Maybe.map Id >> Maybe.withDefault New) (maybe (field "id" int))
+
+
+budgetDecoder : Decoder Budget
+budgetDecoder =
+    map2 Budget idDecoder (field "name" string)
+
+
+getBudgets : Cmd Msg
+getBudgets =
     let
         url =
-            "cats"
-
-        request =
-            Http.get url (list catDecoder)
+            "budget"
     in
-        Http.send NewCats request
+        Http.get url (list budgetDecoder)
+            |> RemoteData.sendRequest
+            |> Cmd.map NewBudgets
