@@ -1,3 +1,6 @@
 .stack-work/
 elm-stuff/
 *.db
+node_modules/
+package-lock.json
+static/app.js
