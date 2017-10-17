@@ -6,12 +6,27 @@ import Json.Decode as Decode exposing (..)
 import Json.Encode as Encode exposing (..)
 import Json.Decode.Extra exposing ((|:))
 import Message exposing (Msg(..))
-import Model exposing (Id, Budget(..), BudgetData, Credentials)
+import Model exposing (..)
 
 
 entityDecoder : (Id -> a -> b) -> (a -> b) -> Decoder a -> Decoder b
 entityDecoder entity new data =
     Decode.oneOf [ Decode.map2 entity (Decode.field "id" Decode.int) data, Decode.map new data ]
+
+
+apiErrorDecoder : Decoder ApiError
+apiErrorDecoder =
+    (Decode.field "error"
+        (Decode.succeed ApiError
+            |: (Decode.field "code" Decode.int)
+            |: (Decode.field "message" Decode.string)
+        )
+    )
+
+
+userDecoder : Decoder User
+userDecoder =
+    Decode.succeed (UserProfile 3 (Profile "alf" "alf@alfie.com"))
 
 
 budgetDecoder : Decoder Budget
@@ -40,6 +55,14 @@ credentialsEncoder credentials =
     Encode.object
         [ ( "username", Encode.string credentials.username )
         , ( "password", Encode.string credentials.password )
+        ]
+
+
+apiErrorOrProfileDecoder : Decoder (ApiResult User)
+apiErrorOrProfileDecoder =
+    Decode.oneOf
+        [ Decode.map Ok userDecoder
+        , Decode.map Err apiErrorDecoder
         ]
 
 

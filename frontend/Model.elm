@@ -9,6 +9,31 @@ type alias Credentials =
     }
 
 
+type alias Profile =
+    { username : String
+    , email : String
+    }
+
+
+type alias Password =
+    String
+
+
+type User
+    = NewUser Password Profile
+    | UserProfile Id Profile
+
+
+type alias ApiError =
+    { code : Int
+    , message : String
+    }
+
+
+type alias ApiResult a =
+    Result ApiError a
+
+
 type alias Id =
     Int
 
