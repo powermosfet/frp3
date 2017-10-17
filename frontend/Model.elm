@@ -1,12 +1,16 @@
 module Model exposing (..)
 
 import RemoteData exposing (WebData)
-import Http
 
 
-type Id
-    = Id Int
-    | New
+type alias Credentials =
+    { username : String
+    , password : String
+    }
+
+
+type alias Id =
+    Int
 
 
 type alias Category =
@@ -15,10 +19,14 @@ type alias Category =
     }
 
 
-type alias Budget =
-    { id : Id
-    , name : String
+type alias BudgetData =
+    { name : String
     }
+
+
+type Budget
+    = Budget Id BudgetData
+    | NewBudget BudgetData
 
 
 type alias BudgetItem =

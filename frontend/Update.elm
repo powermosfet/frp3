@@ -9,3 +9,6 @@ update message model =
     case message of
         NewBudgets budgets ->
             ( { model | budgets = budgets }, Cmd.none )
+
+        LoginResponse _ ->
+            ( model, Cmd.none )
