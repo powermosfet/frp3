@@ -1,11 +1,12 @@
 module Init exposing (..)
 
-import Message exposing (Msg)
-import Model exposing (Model, Route(RouteBudgets), Credentials)
+import Message exposing (Msg(LocationChanged))
+import Model exposing (Model, Route(RouteNotFound), Credentials)
 import Command exposing (getProfile)
 import RemoteData exposing (RemoteData(NotAsked))
 import Navigation exposing (Location)
 import Routing exposing (parseLocation)
+import Update exposing (update)
 
 
 initCredentials : Credentials
@@ -18,19 +19,22 @@ initCredentials =
 init : Location -> ( Model, Cmd Msg )
 init location =
     let
-        route =
-            parseLocation location
+        initModel =
+            { loginCredentials = initCredentials
+            , user = NotAsked
+            , budgets = NotAsked
+            , budgetName = ""
+            , clicked = False
+            , route = RouteNotFound
+            , registerUsername = ""
+            , registerEmail = ""
+            , registerPassword = ""
+            , registerRepeatPassword = ""
+            }
+
+        ( updateModel, updateCommand ) =
+            update (LocationChanged location) initModel
     in
-        ( { loginCredentials = initCredentials
-          , user = NotAsked
-          , budgets = NotAsked
-          , budgetName = ""
-          , clicked = False
-          , route = route
-          , registerUsername = ""
-          , registerEmail = ""
-          , registerPassword = ""
-          , registerRepeatPassword = ""
-          }
-        , getProfile
+        ( updateModel
+        , Cmd.batch [ getProfile, updateCommand ]
         )

@@ -8,7 +8,6 @@ import Element.Input as Input
 import Element.Attributes as Attribute
 import Element.Events as Event
 import Stylesheet exposing (..)
-import List.Extra exposing (transpose)
 import RemoteData
 import Date exposing (Date, day, month, Month, year)
 import Routing exposing (url)
@@ -279,14 +278,17 @@ viewBudgets model =
                         )
                             ++ [ column ItemBoxAdd
                                     [ Attribute.padding 10, Attribute.spacing 10 ]
-                                    [ Input.text LoginField
-                                        [ Attribute.padding 5 ]
-                                        { onChange = BudgetNameChanged
-                                        , value = model.budgetName
-                                        , label = Input.labelAbove (text "Name")
-                                        , options = []
-                                        }
-                                    , button NoStyle [ Attribute.padding 5, Event.onClick AddBudget ] (text "Add")
+                                    [ row NoStyle
+                                        [ Attribute.spacing 10 ]
+                                        [ Input.text LoginField
+                                            [ Attribute.padding 5 ]
+                                            { onChange = BudgetNameChanged
+                                            , value = model.budgetName
+                                            , label = Input.hiddenLabel "Name"
+                                            , options = []
+                                            }
+                                        , button NoStyle [ Attribute.padding 5, Event.onClick AddBudget ] (text "Add")
+                                        ]
                                     ]
                                ]
     in
