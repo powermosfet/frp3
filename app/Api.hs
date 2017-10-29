@@ -16,7 +16,7 @@ import Model.Category                (categoryListAction, categoryCreateAction, 
 import Model.Budget                  (budgetListAction, budgetCreateAction, budgetGetAction, budgetChangeAction, budgetDeleteAction)
 import Model.BudgetItem              (budgetItemListAction, budgetItemCreateAction, budgetItemGetAction, budgetItemChangeAction, budgetItemDeleteAction)
 import Model.Transaction             (transactionListAction, transactionCreateAction, transactionGetAction, transactionChangeAction, transactionDeleteAction)
-import Model.User                    (loginAction, registerAction)
+import Model.User                    (loginAction, registerAction, profileGetAction)
 
 baseHook :: ApiAction () (HVect '[])
 baseHook = return HNil
@@ -24,8 +24,9 @@ baseHook = return HNil
 app :: Api ()
 app = prehook baseHook $
   do middleware (staticPolicy (only [("", "static/index.html")] <|> addBase "static"))
-     do post "login" loginAction
+     do post "login"    loginAction
         post "register" registerAction 
+        get     "me"    profileGetAction
         prehook authHook $
           do get     "category"              categoryListAction
              post    "category"              categoryCreateAction

@@ -28,7 +28,7 @@ categoryCreateAction = do
         Right theCategory -> do
             let theCategory' = theCategory { categoryOwner = userId }
             newId <- runSQL $ insert theCategory'
-            successJson $ Created $ Entity newId theCategory'
+            successJson Created $ Entity newId theCategory'
 
 categoryGetAction :: ListContains n (UserId, User) xs => CategoryId -> ApiAction (HVect xs) ()
 categoryGetAction categoryId = do
@@ -41,7 +41,7 @@ categoryChangeAction categoryId = do
     case eCategory of
         Right putCategory -> do
             runSQL $ replace categoryId putCategory
-            successJson $ Changed $ Entity categoryId putCategory
+            successJson Changed $ Entity categoryId putCategory
         _ -> errorJson $ ParseError (entityDef (undefined :: Maybe Category))
 
 categoryDeleteAction :: ListContains n (UserId, User) xs => CategoryId -> ApiAction (HVect xs) ()

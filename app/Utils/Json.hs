@@ -48,6 +48,7 @@ errorMessage err = case err of
 
 statusCode :: ErrorType -> Http.Status
 statusCode Unauthenticated = Http.status401
+statusCode LoginFailed = Http.status401
 statusCode NotFound = Http.status404
 statusCode Forbidden = Http.status403
 statusCode _ = Http.status200
@@ -81,20 +82,21 @@ errorJson err =
         , "error" .= errorObject
         ]
 
-data SuccessType a
-  = Created a
-  | Changed a
+data SuccessType
+  = Created
+  | Changed
+  | Found
 
-successJson :: (ToJSON a) => SuccessType a -> ApiAction ctx b
-successJson (Created ob) = do
-  setStatus Http.status201
-  json ob
-successJson (Changed ob) = json ob
+successJson :: (ToJSON a) => SuccessType -> a -> ApiAction ctx b
+successJson successType ob = 
+    let
+        status = case successType of
+            Created -> Http.status201
+            _ -> Http.status200
+    in do
+        setStatus status
+        json ob
 
-succesWithId :: (ToJSON a) => a -> ApiAction ctx b
-succesWithId theId = 
-  json $ object ["result" .= String "success", "id" .= theId]
-
-succesWithMessage :: String -> ApiAction ctx a
-succesWithMessage msg = 
+successWithMessage :: String -> ApiAction ctx a
+successWithMessage msg = 
   json $ object ["result" .= String "success", "message" .= msg]

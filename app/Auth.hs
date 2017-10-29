@@ -5,7 +5,7 @@
 module Auth where
 
 import Web.Spock            (readSession, getState, getContext)
-import Database.Persist.Sql (get, SqlPersistM, PersistEntity, PersistEntityBackend, SqlBackend)
+import Database.Persist.Sql (get, SqlPersistM, PersistEntity, PersistEntityBackend, SqlBackend, entityDef)
 import Data.HVect           (HVect((:&:)), findFirst, ListContains)
 import Data.Time            (NominalDiffTime, getCurrentTime)
 import Control.Monad.Trans  (liftIO)
@@ -15,7 +15,7 @@ import Config         (configSessionLifetime)
 import Model          (User, UserId, SessionId, sessionUserId, HasOwner, getOwner)
 import Model.Session  (validateSession)
 import Utils.Database (runSQL)
-import Utils.Json     (errorJson, ErrorType(Unauthenticated, Forbidden, NotFound))
+import Utils.Json     (errorJson, ErrorType(Unauthenticated, Forbidden, NotFound, ParseError))
 
 authHook :: ApiAction (HVect xs) (HVect ((UserId, User) ': xs))
 authHook =
@@ -73,7 +73,7 @@ checkOwner getAction = do
     maybeObject <- getAction
     return $ (,) owner $ case maybeObject of
         Just object | getOwner object == owner -> Right object
-        Nothing -> Left $ errorJson NotFound
+        Nothing -> Left $ errorJson (ParseError (entityDef maybeObject))
         _ -> Left $ errorJson Forbidden
 
 eAction :: Either a a -> a

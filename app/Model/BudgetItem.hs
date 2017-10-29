@@ -31,7 +31,7 @@ budgetItemCreateAction = do
             case eBudget of
               Right _ -> do
                 budgetItemId <- runSQL $ insert budgetItem
-                successJson $ Created $ Entity budgetItemId budgetItem
+                successJson Created $ Entity budgetItemId budgetItem
               _ -> errorJson Forbidden
 
 budgetItemGetAction :: ListContains n (UserId, User) xs => BudgetItemId -> ApiAction (HVect xs) ()
@@ -53,7 +53,7 @@ budgetItemChangeAction budgetItemId = do
                         Right _ -> do
                             let newBudgetItem = putBudgetItem { budgetItemOwner = userId }
                             runSQL $ replace budgetItemId newBudgetItem
-                            successJson $ Changed $ Entity budgetItemId newBudgetItem
+                            successJson Changed $ Entity budgetItemId newBudgetItem
                         _ -> errorJson Forbidden
         _ -> errorJson $ ParseError (entityDef maybePutBudgetItem)
 

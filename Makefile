@@ -21,4 +21,4 @@ clean:
 	-rm -r static/app.js elm-stuff/ .stack-work/
 
 live: 
-	elm-live frontend/Main.elm --output static/app.js --dir=static/
+	elm-live frontend/Main.elm --debug --output static/app.js --dir=static/

@@ -1,11 +1,36 @@
 module Init exposing (..)
 
-import RemoteData exposing (RemoteData(NotAsked))
-import Model exposing (Model)
 import Message exposing (Msg)
-import Command exposing (postLogin)
+import Model exposing (Model, Route(RouteBudgets), Credentials)
+import Command exposing (getProfile)
+import RemoteData exposing (RemoteData(NotAsked))
+import Navigation exposing (Location)
+import Routing exposing (parseLocation)
 
 
-init : ( Model, Cmd Msg )
-init =
-    ( { budgets = NotAsked }, postLogin { username = "alf", password = "alfisbest" } )
+initCredentials : Credentials
+initCredentials =
+    { username = ""
+    , password = ""
+    }
+
+
+init : Location -> ( Model, Cmd Msg )
+init location =
+    let
+        route =
+            parseLocation location
+    in
+        ( { loginCredentials = initCredentials
+          , user = NotAsked
+          , budgets = NotAsked
+          , budgetName = ""
+          , clicked = False
+          , route = route
+          , registerUsername = ""
+          , registerEmail = ""
+          , registerPassword = ""
+          , registerRepeatPassword = ""
+          }
+        , getProfile
+        )

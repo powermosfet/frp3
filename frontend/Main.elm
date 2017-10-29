@@ -1,8 +1,9 @@
 module Main exposing (main)
 
+import Navigation
 import Html
-import Init
 import Model
+import Init
 import Message
 import Update
 import View
@@ -10,7 +11,7 @@ import View
 
 main : Program Never Model.Model Message.Msg
 main =
-    Html.program
+    Navigation.program Message.LocationChanged
         { init = Init.init
         , view = View.view
         , update = Update.update

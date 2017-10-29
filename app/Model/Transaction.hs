@@ -36,7 +36,7 @@ transactionCreateAction = do
               (Right _, Right _) -> do
                 let modifiedTransaction = transaction { transactionTimestamp = now }
                 transactionId <- runSQL $ insert modifiedTransaction
-                successJson $ Created $ Entity transactionId modifiedTransaction
+                successJson Created $ Entity transactionId modifiedTransaction
               _ -> errorJson Forbidden
 
 transactionGetAction :: ListContains n (UserId, User) xs => TransactionId -> ApiAction (HVect xs) ()
@@ -59,7 +59,7 @@ transactionChangeAction transactionId = do
                         (Right _, Right _) -> do
                             let newTransaction = putTransaction { transactionOwner = userId }
                             runSQL $ replace transactionId newTransaction
-                            successJson $ Changed $ Entity transactionId newTransaction
+                            successJson Changed $ Entity transactionId newTransaction
                         _ -> errorJson Forbidden
         _ -> errorJson $ ParseError (entityDef maybePutTransaction)
 

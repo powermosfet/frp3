@@ -1,11 +1,18 @@
 module Model exposing (..)
 
 import RemoteData exposing (WebData)
+import Date exposing (Date)
 
 
 type alias Credentials =
     { username : String
     , password : String
+    }
+
+
+type alias User =
+    { id : Id
+    , profile : Profile
     }
 
 
@@ -15,23 +22,20 @@ type alias Profile =
     }
 
 
+type NewUser
+    = NewUser Password Profile
+
+
 type alias Password =
     String
 
 
-type User
-    = NewUser Password Profile
-    | UserProfile Id Profile
+type alias ErrorCode =
+    Int
 
 
-type alias ApiError =
-    { code : Int
-    , message : String
-    }
-
-
-type alias ApiResult a =
-    Result ApiError a
+type alias ErrorMessage =
+    String
 
 
 type alias Id =
@@ -44,14 +48,13 @@ type alias Category =
     }
 
 
-type alias BudgetData =
-    { name : String
-    }
+type alias Name =
+    String
 
 
 type Budget
-    = Budget Id BudgetData
-    | NewBudget BudgetData
+    = Budget Id Date Name
+    | NewBudget Name
 
 
 type alias BudgetItem =
@@ -63,5 +66,28 @@ type alias BudgetItem =
     }
 
 
+type Route
+    = RouteRegister
+    | RouteLogin
+    | RouteProfile
+    | RouteBudgets
+    | RouteBudget Id
+    | RouteCategories
+    | RouteCategory Id
+    | RouteTransactions
+    | RouteAddBudget
+    | RouteNotFound
+
+
 type alias Model =
-    { budgets : WebData (List Budget) }
+    { loginCredentials : Credentials
+    , user : WebData User
+    , budgets : WebData (List Budget)
+    , budgetName : String
+    , clicked : Bool
+    , route : Route
+    , registerUsername : String
+    , registerEmail : String
+    , registerPassword : String
+    , registerRepeatPassword : String
+    }

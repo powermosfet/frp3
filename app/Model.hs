@@ -3,14 +3,17 @@
 {-# LANGUAGE GADTs                      #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE MultiParamTypeClasses      #-}
+{-# LANGUAGE OverloadedStrings          #-}
 {-# LANGUAGE QuasiQuotes                #-}
 {-# LANGUAGE TemplateHaskell            #-}
 {-# LANGUAGE TypeFamilies               #-}
 
 module Model where
 
+import Data.Aeson           (ToJSON(toJSON), (.=), object)
 import Data.Text            (Text)
 import Data.Time.Clock      (UTCTime)
+import Database.Persist     (Entity(Entity))
 import Database.Persist.TH  (persistLowerCase, share, mkPersist, mkMigrate, sqlSettings)
 import qualified Data.ByteString.Char8 as BS
 
@@ -21,6 +24,7 @@ Session
   deriving Show 
 User
   username Text
+  email Text
   password BS.ByteString
   UniqueUsername username
   deriving Show Eq
@@ -61,3 +65,12 @@ instance HasOwner BudgetItem where
 
 instance HasOwner Transaction where
   getOwner = transactionOwner
+
+instance ToJSON (Entity User) where 
+  toJSON (Entity key (User username email _)) =
+    object 
+      [ "id" .= key
+      , "username" .= username
+      , "email" .= email
+      ]
+
